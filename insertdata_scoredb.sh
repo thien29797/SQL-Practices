@@ -77,11 +77,11 @@ echo "End Insert"
 
 # Insert Subject Category: 5 rows
 echo "Start Insert subject_category Table"
- mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Base Programming", FLOOR(RAND()*(4)+1));' 2>/dev/null
- mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Web Programming", FLOOR(RAND()*(16)+13));' 2>/dev/null
- mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("AI", FLOOR(RAND()*(8)+5));' 2>/dev/null
- mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Mobile Programming", FLOOR(RAND()*(12)+9));' 2>/dev/null
- mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Language", FLOOR(RAND()*(20)+17));' 2>/dev/null
+ mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Base Programming", 55);' 2>/dev/null
+ mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Web Programming", 64);' 2>/dev/null
+ mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("AI", 73);' 2>/dev/null
+ mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Mobile Programming", 77);' 2>/dev/null
+ mysql -u${username} -p${password} -D${database} <<<'INSERT INTO subject_category (category_name, test_subject_code) VALUES ("Language", 77);' 2>/dev/null
 echo "End Insert"
 
 # Insert Student: 50 rows
@@ -119,9 +119,9 @@ echo "End Insert"
 
 # Insert testsubject_result Table
 echo "Start Insert testresult_result"
- for i in {1..200};
+ for i in {1..15};
 do
- mysql -u${username} -p${password} -D${database} <<<'INSERT INTO testresult_result (test_result_code, result_id) VALUES (FLOOR(RAND()*(200)+1), FLOOR(RAND()*(2)+1));' 2>/dev/null
+ mysql -u${username} -p${password} -D${database} <<<'INSERT INTO testresult_result (test_result_code, result_id) VALUES (FLOOR(RAND()*(18)+1), FLOOR(RAND()*(2)+1));' 2>/dev/null
 done
 echo "End Insert"
 
