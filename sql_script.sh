@@ -116,49 +116,42 @@ mysql -u${username} -p${password} -D${database} <<<'SELECT sc.category_name, CON
 
 # 3.11 Classify student based on average score of all subject categories: EXCELLENT (9, 10), GOOD (7,8), AVERAGE (5,6), WEAK (<5)
 echo "3.11 Classify student based on average score of all subject categories: EXCELLENT (9, 10), GOOD (7,8), AVERAGE (5,6), WEAK (<5)"
-mysql -u${username} -p${password} -D${database} <<<'CREATE PROCEDURE `classifyScore`(
-	 IN	student_code_input VARCHAR(255),
-    	OUT result VARCHAR(255)
-)
-
-BEGIN
-   
-    DECLARE average_score INT(10) DEFAULT 0;
-     
-    SELECT AVG(tr.score)AverageScore INTO average_score FROM test_result tr 
+mysql -u${username} -p${password} -D${database} <<<'SELECT CONCAT(si.first_name," ", si.last_name)StudentName, AVG(tr.score)AS AverageScore,
+	(CASE AVG(tr.score)
+		WHEN AVG(tr.score) > 9 AND AVG(tr.score) < 10 THEN "EXCELLENT"
+		WHEN AVG(tr.score) > 7 AND AVG(tr.score) < 8 THEN "GOOD"
+		WHEN AVG(tr.score) > 5 AND AVG(tr.score) < 6 THEN "AVERAGE"
+		WHEN AVG(tr.score) < 5 THEN "WEAK"
+	END) 
+	AS Rank
+FROM test_result tr 
 			INNER JOIN test_subject ts ON ts.test_result_code = tr.test_result_code
-			INNER JOIN student_information si ON si.test_result_code = tr.test_result_code
-		WHERE si.student_code = student_code_input AND si.test_result_code IN	(SELECT tr.test_result_code FROM test_subject ts
+			INNER JOIN student_information si ON si.student_code = tr.student_code
+WHERE si.student_code = tr.student_code AND tr.test_result_code IN	(SELECT tr.test_result_code FROM test_subject ts
 														INNER JOIN test_result tr ON	tr.test_result_code = ts.test_result_code
 														INNER JOIN subject_category sc ON sc.test_subject_code = ts.test_subject_code
 													WHERE ts.test_subject_code = sc.test_subject_code)
-		GROUP BY ts.test_name;
- 
-    IF (average_score <= 0) THEN
-            SET result = "Error";
-        ELSEIF (average_score <5) THEN
-            SET result = "WEAK";
-        ELSEIF (average_score >= 5 AND average_score <=6) THEN
-            SET result = "AVERAGE";
-        ELSEIF (average_score >= 7 AND average_score <=8) THEN
-            SET result = "GOOD";
-        ELSEIF (average_score >= 9 AND average_score <=10) THEN
-        		SET result = "EXCELLENT"
-    END IF;
-END
-
-DELIMITER ;' 2>/dev/null
-
-mysql -u${username} -p${password} -D${database} <<<'CALL classifyScore("ST-123456", @result) SELECT @result;' 2>/dev/null
+GROUP BY si.student_code, tr.test_result_code;' 2>/dev/null
 
 # 3.12 Count how many student on each classification.
 echo "3.12 Count how many student on each classification."
-mysql -u${username} -p${password} -D${database} <<<'SELECT sc.category_name, COUNT(si.student_code)StudentAmount  FROM test_result tr 
+mysql -u${username} -p${password} -D${database} <<<'SELECT sc.category_name, (si.student_code)StudentAmount  
+FROM test_result tr 
 			INNER JOIN test_subject ts ON ts.test_result_code = tr.test_result_code
 			INNER JOIN subject_category sc ON  sc.test_subject_code = ts.test_subject_code
-			INNER JOIN student_information si ON si.test_result_code = tr.test_result_code
-		WHERE ts.test_subject_code = sc.test_subject_code AND ts.test_result_code = tr.test_result_code 
-								AND si.test_result_code = tr.test_result_code 
-		GROUP BY sc.category_name' 2>/dev/null
+			INNER JOIN student_information si ON si.student_code = tr.student_code
+WHERE ts.test_subject_code = sc.test_subject_code 
+		AND ts.test_result_code = tr.test_result_code 
+		AND si.student_code = tr.student_code 
+UNION 
+SELECT sc.category_code, sc.category_name
+FROM subject_category sc
+		INNER JOIN test_subject ts ON ts.test_subject_code = sc.test_subject_code
+		INNER JOIN test_result tr ON tr.test_result_code = ts.test_result_code
+		INNER JOIN student_information si ON si.student_code = tr.student_code
+WHERE ts.test_subject_code = sc.test_subject_code 
+		AND ts.test_result_code = tr.test_result_code 
+		AND si.student_code = tr.student_code
+ORDER BY 2;' 2>/dev/null
 
 
