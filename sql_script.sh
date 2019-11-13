@@ -117,10 +117,10 @@ mysql -u${username} -p${password} -D${database} <<<'SELECT sc.category_name, CON
 # 3.11 Classify student based on average score of all subject categories: EXCELLENT (9, 10), GOOD (7,8), AVERAGE (5,6), WEAK (<5)
 echo "3.11 Classify student based on average score of all subject categories: EXCELLENT (9, 10), GOOD (7,8), AVERAGE (5,6), WEAK (<5)"
 mysql -u${username} -p${password} -D${database} <<<'SELECT CONCAT(si.first_name," ", si.last_name)StudentName, AVG(tr.score)AS AverageScore,
-	(CASE AVG(tr.score)
-		WHEN AVG(tr.score) > 9 AND AVG(tr.score) < 10 THEN "EXCELLENT"
-		WHEN AVG(tr.score) > 7 AND AVG(tr.score) < 8 THEN "GOOD"
-		WHEN AVG(tr.score) > 5 AND AVG(tr.score) < 6 THEN "AVERAGE"
+	(CASE
+		WHEN AVG(tr.score) >= 9 AND AVG(tr.score) <= 10 THEN "EXCELLENT"
+		WHEN AVG(tr.score) >= 7 AND AVG(tr.score) <= 8 THEN "GOOD"
+		WHEN AVG(tr.score) >= 5 AND AVG(tr.score) <= 6 THEN "AVERAGE"
 		WHEN AVG(tr.score) < 5 THEN "WEAK"
 	END) 
 	AS Rank
@@ -135,7 +135,7 @@ GROUP BY si.student_code, tr.test_result_code;' 2>/dev/null
 
 # 3.12 Count how many student on each classification.
 echo "3.12 Count how many student on each classification."
-mysql -u${username} -p${password} -D${database} <<<'SELECT sc.category_name, (si.student_code)StudentAmount  
+mysql -u${username} -p${password} -D${database} <<<'SELECT sc.category_name, COUNT(si.student_code)StudentAmount  
 FROM test_result tr 
 			INNER JOIN test_subject ts ON ts.test_result_code = tr.test_result_code
 			INNER JOIN subject_category sc ON  sc.test_subject_code = ts.test_subject_code
@@ -143,8 +143,9 @@ FROM test_result tr
 WHERE ts.test_subject_code = sc.test_subject_code 
 		AND ts.test_result_code = tr.test_result_code 
 		AND si.student_code = tr.student_code 
-UNION 
-SELECT sc.category_code, sc.category_name
+GROUP BY sc.category_name
+UNION
+SELECT sc.category_name, COUNT(si.student_code)StudentAmount
 FROM subject_category sc
 		INNER JOIN test_subject ts ON ts.test_subject_code = sc.test_subject_code
 		INNER JOIN test_result tr ON tr.test_result_code = ts.test_result_code
@@ -152,6 +153,7 @@ FROM subject_category sc
 WHERE ts.test_subject_code = sc.test_subject_code 
 		AND ts.test_result_code = tr.test_result_code 
 		AND si.student_code = tr.student_code
+GROUP BY sc.category_name
 ORDER BY 2;' 2>/dev/null
 
 
